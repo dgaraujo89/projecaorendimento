@@ -5,6 +5,7 @@ const parametros = {
     periodoAplicacao: 0, // em anos
     tempoAplicacaoMensal: 0, // em anos
     taxaRedimento: 0, // em percentual pelo periodo
+    valorAdicionalAnoInflacao: 0,
     retiradas: [
         {
             valor: 0.0,
@@ -28,16 +29,21 @@ function projetaRendimentos() {
         valorAplicadoMes: 0.0,
         valorTotalAplicado: 0.0,
         valorTotalRendido: 0.0,
-        percentualTotalRendido: 0.0
-    }
+        percentualTotalRendido: 0.0,
+        valorAdicionalAnoInflacao: 0.0
+    };
 
     for(var mes = 1; mes <= parametros.periodoAplicacao * 12; mes++) {
-        if(mes == 1) {
+        if(mes === 1) {
             controle.saldo = parametros.capitalInicial;
             controle.valorTotalAplicado = parametros.capitalInicial;
             controle.valorAplicadoMes = parametros.capitalInicial;
         } else {
             var retirada = obtemRetirada(mes);
+
+            if(mes % 12 === 1) {
+                parametros.valorAplicacaoMensal += parametros.valorAdicionalAnoInflacao;
+            }
             
             if(retirada != null) {
                 var valorRetirado = efetuaRetirada(retirada);
@@ -52,9 +58,7 @@ function projetaRendimentos() {
             }
         }
 
-        // console.log(`Mes: ${mes}, Ref: ${parametros.tempoAplicacaoMensal * 12}`)
-
-        var rendimento = calculaRendimento(controle.saldo)
+        var rendimento = calculaRendimento(controle.saldo);
         controle.saldo += rendimento;
         controle.valorTotalRendido += rendimento;
 
@@ -74,14 +78,14 @@ function projetaRendimentos() {
 
 function obtemRetirada(mes) {
     var retiradas = parametros.retiradas.filter(r => {
-        if(mes >= ((r.ano) * 12 + r.mes)) {
+        if(mes > ((r.ano) * 12 + r.mes)) {
             return true;
         }
 
         return false;
     });
 
-    if(retiradas.length == 0) {
+    if(retiradas.length === 0) {
         return null;
     }
 
@@ -90,7 +94,7 @@ function obtemRetirada(mes) {
 
 function efetuaRetirada(retirada) {
     if(retirada.ajustaTaxa) {
-        parametros.taxaRedimento = retirada.novaTaxa;
+        parametros.taxaRedimento = retirada.novaTaxa / 12;
     }
 
     return retirada.valor;
@@ -107,7 +111,7 @@ function registraProjecao(mes, dados) {
         taxa: dados.taxa
     });
 
-    if(mes % 12 == 0) {
+    if(mes % 12 === 0) {
         anos.push({
             saldo: dados.saldo,
             valorTotalAplicado: dados.valorTotalAplicado,
@@ -121,20 +125,23 @@ function calculaRendimento(valor) {
     return valor * (parametros.taxaRedimento / 100);
 }
 
-function calcular({capitalInicial, valorAplicacaoMensal, periodoAplicacao, tempoAplicacaoMensal, taxa, retiradas}) {
+function calcular({capitalInicial, valorAplicacaoMensal, periodoAplicacao, tempoAplicacaoMensal, taxa, retiradas, inflacao}) {
     parametros.capitalInicial = capitalInicial;
     parametros.valorAplicacaoMensal = valorAplicacaoMensal;
     parametros.periodoAplicacao = periodoAplicacao;
     parametros.tempoAplicacaoMensal = tempoAplicacaoMensal;
-    parametros.taxaRedimento = taxa;
+    parametros.taxaRedimento = taxa / 12;
     parametros.retiradas = retiradas;
+    parametros.valorAdicionalAnoInflacao = valorAplicacaoMensal * (inflacao / 100.0);
 
     projetaRendimentos();
 
     return {
-        meses,
-        anos
-    }
+        meses: meses,
+        anos: anos,
+        taxaRedimentoMes: parametros.taxaRedimento,
+        valorAdicionalAnoInflacao: parametros.valorAdicionalAnoInflacao
+    };
 }
 
-export default calcular
+export default calcular;

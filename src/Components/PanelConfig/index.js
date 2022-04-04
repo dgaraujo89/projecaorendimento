@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button, Card, Col, Form, Alert } from 'react-bootstrap';
-import { PlusCircle, XOctagon } from 'react-bootstrap-icons'
+import { PlusCircle, XOctagon } from 'react-bootstrap-icons';
 import ResultPanel from '../ResultPanel';
 
 import calcular from '../../Services/ProjetaRendimento'
@@ -19,6 +19,7 @@ const initialValues = {
     tempoAplicacao: 20,
     tempoContribuicao: 20,
     taxaRendimento: 1.1,
+    inflacao: 3.7,
     retiradas: []
 };
 
@@ -43,7 +44,8 @@ function PanelConfig() {
             periodoAplicacao: values.tempoAplicacao,
             tempoAplicacaoMensal: values.tempoContribuicao,
             taxa: values.taxaRendimento,
-            retiradas: values.retiradas
+            retiradas: values.retiradas,
+            inflacao: values.inflacao
         }));
     };
 
@@ -133,7 +135,7 @@ function PanelConfig() {
                                         onChange={(e) => setValues({ ...values, tempoContribuicao: parseInt(e.target.value) })} />
                                 </Form.Group>
                                 <Form.Group as={Col}>
-                                    <Form.Label>Taxa Rendimento (% mês)</Form.Label>
+                                    <Form.Label>Taxa Rendimento (% ano)</Form.Label>
                                     <Form.Control
                                         type="number"
                                         max="100"
@@ -142,6 +144,20 @@ function PanelConfig() {
                                         step=".01"
                                         value={values.taxaRendimento}
                                         onChange={(e) => setValues({ ...values, taxaRendimento: parseFloat(e.target.value.replace(',', '.')) })} />
+                                </Form.Group>
+                                <Form.Group as={Col}>
+                                    <Form.Label>Inflação (% ano)</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        max="100"
+                                        min="0"
+                                        required
+                                        step=".01"
+                                        value={values.inflacao}
+                                        onChange={(e) => setValues({ ...values, inflacao: parseFloat(e.target.value.replace(',', '.')) })} />
+                                        <Form.Text className="text-muted">
+                                            Utilizado para calcular o valor de reajuste na aplicação mensal.
+                                        </Form.Text>
                                 </Form.Group>
                             </Form.Row>
 
@@ -182,11 +198,11 @@ function PanelConfig() {
                                             as="select"
                                             required
                                             onChange={e => handleChangeRetiradas(index, 'ano', parseInt(e.target.value) - 1)}>
-                                                {listaAnos.map(ano => <option value={ano} selected={r.ano == ano - 1}>{ano}</option>)}
+                                                {listaAnos.map(ano => <option value={ano} selected={r.ano === ano - 1}>{ano}</option>)}
                                         </Form.Control>
                                     </Form.Group>
                                     <Form.Group as={Col}>
-                                        <Form.Label>Ajustar a taxa?</Form.Label>
+                                        <Form.Label>Ajustar a taxa de rendimento?</Form.Label>
                                         <div className="form-control" style={{ border: 0 }}>
                                             <Form.Check
                                                 type="radio"
@@ -203,7 +219,7 @@ function PanelConfig() {
                                         </div>
                                     </Form.Group>
                                     <Form.Group as={Col}>
-                                        <Form.Label>Taxa</Form.Label>
+                                        <Form.Label>Taxa de rendimento (% ano)</Form.Label>
                                         <Form.Control
                                             type="number"
                                             max="100"

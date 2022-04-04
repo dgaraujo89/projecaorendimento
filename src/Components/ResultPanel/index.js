@@ -10,17 +10,26 @@ function ResultPanel({ anos, meses }) {
         return <></>;
     }
 
-    const profitData = [];
-    const contributionData = [];
+    const profitChartData = [];
 
     anos.forEach((e, i) => {
-        profitData.push({x: (i + 1), y: e.saldo})
-        contributionData.push({x: (i + 1), y: e.valorTotalAplicado})
+        profitChartData.push({
+            year: (i + 1),
+            contribution: e.valorTotalAplicado,
+            evolution:  Math.round(e.saldo)
+        });
     });
 
     return (
         <div style={{ marginTop: '20px' }}>
             <Tabs defaultActiveKey="anual" id="result">
+                <Tab eventKey="charts" title="Projeção Gráfica">
+                    <Card>
+                        <Card.Body>
+                            <ChartLine data={profitChartData} show={true} />
+                        </Card.Body>
+                    </Card>
+                </Tab>
                 <Tab eventKey="anual" title="Projeção Anual">
                     <Card>
                         <Card.Body>
@@ -32,13 +41,6 @@ function ResultPanel({ anos, meses }) {
                     <Card>
                         <Card.Body>
                             <MonthTable list={meses} />
-                        </Card.Body>
-                    </Card>
-                </Tab>
-                <Tab eventKey="charts" title="Projeção Gráfica">
-                    <Card>
-                        <Card.Body>
-                            <ChartLine profitData={profitData} contributionData={contributionData} show={true} />
                         </Card.Body>
                     </Card>
                 </Tab>
